@@ -3,6 +3,7 @@ package com.example.payment_system.controller;
 import com.example.payment_system.dto.DetailedUserResponse;
 import com.example.payment_system.dto.UserRequest;
 import com.example.payment_system.dto.UserResponse;
+import com.example.payment_system.ratelimit.RateLimited;
 import com.example.payment_system.service.UserService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
@@ -22,16 +23,19 @@ public class UserController {
 
     private final UserService userService;
 
+    @RateLimited(capacity = 30, refillTokens = 30)
     @GetMapping
     public List<UserResponse> getAllUsers() {
         return userService.getAllUsers();
     }
 
+    @RateLimited(capacity = 30, refillTokens = 30)
     @GetMapping("/{id}")
     public DetailedUserResponse getUser(@PathVariable @Positive Long id) {
         return userService.getUserById(id);
     }
 
+    @RateLimited(capacity = 15, refillTokens = 10)
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public UserResponse createUser(@Valid @RequestBody UserRequest request) {

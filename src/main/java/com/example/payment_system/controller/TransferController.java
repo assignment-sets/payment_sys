@@ -2,6 +2,7 @@ package com.example.payment_system.controller;
 
 import com.example.payment_system.dto.CreateTransferRequest;
 import com.example.payment_system.dto.TransferResponse;
+import com.example.payment_system.ratelimit.RateLimited;
 import com.example.payment_system.service.TransferService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +21,7 @@ public class TransferController {
     /**
      * Send money from one account to another.
      */
+    @RateLimited(capacity = 15, refillTokens = 10)
     @PostMapping
     public ResponseEntity<TransferResponse> createTransfer(
             @Valid @RequestBody CreateTransferRequest request
