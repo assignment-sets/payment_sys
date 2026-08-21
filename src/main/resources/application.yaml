@@ -21,3 +21,9 @@ spring:
 
 server:
   port: 8080
+
+transfer:
+  zombie-cleanup:
+    enabled: true
+    interval-ms: 600000     # sweep every 10 minutes
+    stale-after-ms: 300000  # INITIATED older than 5 minutes is a zombie

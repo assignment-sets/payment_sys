@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.OffsetDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -32,4 +33,18 @@ public interface TransferRepository extends JpaRepository<Transfer, Long> {
                                com.example.payment_system.entity.TransferStatus.PENDING)
             """)
     int markFailedByTransactionId(@Param("transactionId") UUID transactionId);
+
+    /**
+     * Zombie cleanup: fails transfers stuck in INITIATED (e.g. server crash
+     * mid-processing) older than the given cutoff. The status guard ensures
+     * in-flight or POSTED transfers are never touched.
+     */
+    @Modifying
+    @Query("""
+            UPDATE Transfer t
+            SET t.status = com.example.payment_system.entity.TransferStatus.FAILED
+            WHERE t.status = com.example.payment_system.entity.TransferStatus.INITIATED
+              AND t.createdAt < :cutoff
+            """)
+    int failStaleInitiated(@Param("cutoff") OffsetDateTime cutoff);
 }
