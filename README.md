@@ -11,10 +11,10 @@ Start the PostgreSQL database:
 ```bash
 docker run -d \
   --name payment-postgres \
-  -p 5432:5432 \
-  -e POSTGRES_DB=payments_db \
-  -e POSTGRES_USER=payments_user \
-  -e POSTGRES_PASSWORD=payments_pass \
+  -p 5433:5432 \
+  -e POSTGRES_DB=paymentsys_db \
+  -e POSTGRES_USER=paymentsys_user \
+  -e POSTGRES_PASSWORD=paymentsys_pass \
   -v payments_pgdata:/var/lib/postgresql/data \
   postgres:13-trixie
 ```

@@ -3,15 +3,15 @@ services:
     image: postgres:13-alpine
     container_name: payment-postgres
     ports:
-      - "5432:5432"
+      - "5433:5432"
     environment:
-      POSTGRES_DB: payments_db
-      POSTGRES_USER: payments_user
-      POSTGRES_PASSWORD: payments_pass
+      POSTGRES_DB: paymentsys_db
+      POSTGRES_USER: paymentsys_user
+      POSTGRES_PASSWORD: paymentsys_pass
     volumes:
       - payments_pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U payments_user -d payments_db"]
+      test: ["CMD-SHELL", "pg_isready -U paymentsys_user -d paymentsys_db"]
       interval: 5s
       timeout: 5s
       retries: 10
