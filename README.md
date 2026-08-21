@@ -6,23 +6,17 @@ A double-entry ledger payment system with idempotent transfers, optimistic locki
 
 ## Setup
 
-Start the PostgreSQL database:
+Start the PostgreSQL database and redis :
 
 ```bash
-docker run -d \
-  --name payment-postgres \
-  -p 5433:5432 \
-  -e POSTGRES_DB=paymentsys_db \
-  -e POSTGRES_USER=paymentsys_user \
-  -e POSTGRES_PASSWORD=paymentsys_pass \
-  -v payments_pgdata:/var/lib/postgresql/data \
-  postgres:13-trixie
+docker compose up --build
+
 ```
 
 Then run the app:
 
 ```bash
-./mvnw spring-boot:run
+set -a; . .env; set +a; mvn spring-boot:run
 ```
 
 ---
@@ -33,16 +27,16 @@ Then run the app:
 
 > Bugs that can lose money or corrupt ledger state. Fix before anything else.
 
-- [ ] **Swallowed exception in `TransferService.createTransfer`** — the catch block around `executeMoneyMovement` silently ignores all exceptions ("Errors here are handled by @Recover or logged") but nothing is actually logged. Non-retryable errors (e.g. `InsufficientBalanceException`) never reach `@Recover`, so transfers can stay stuck in PENDING with no trace.
-- [ ] **Non-retryable failures don't mark transfer FAILED** — `executeMoneyMovement` only recovers from `OptimisticLockingFailureException`; business failures (insufficient balance, invalid state) leave the record in INITIATED/PENDING forever until the zombie cleanup job exists.
-- [ ] **Ledger integrity constraints** — add a unique constraint on `ledger_entries(transaction_id)` or `(transaction_id, account_id)` to guarantee double-entry completeness per transaction at the DB level.
-- [ ] **Validate entry type against amount sign** — DEBIT should imply a negative amount; enforce via a CHECK constraint or service-level invariant.
+- [x] **Swallowed exception in `TransferService.createTransfer`** — the catch block around `executeMoneyMovement` silently ignores all exceptions ("Errors here are handled by @Recover or logged") but nothing is actually logged. Non-retryable errors (e.g. `InsufficientBalanceException`) never reach `@Recover`, so transfers can stay stuck in PENDING with no trace.
+- [x] **Non-retryable failures don't mark transfer FAILED** — `executeMoneyMovement` only recovers from `OptimisticLockingFailureException`; business failures (insufficient balance, invalid state) leave the record in INITIATED/PENDING forever until the zombie cleanup job exists.
+- [x] **Ledger integrity constraints** — add a unique constraint on `ledger_entries(transaction_id)` or `(transaction_id, account_id)` to guarantee double-entry completeness per transaction at the DB level.
+- [x] **Validate entry type against amount sign** — DEBIT should imply a negative amount; enforce via a CHECK constraint or service-level invariant.
 
 ## 🟠 P1 — Reliability & Recovery
 
 > The system must self-heal after crashes and partial failures.
 
-- [ ] **Zombie Cleanup** — even with retries, a server crash during math leaves records as INITIATED. Run a background cron every 10 mins to find INITIATED records older than 5 mins and either re-process or mark them FAILED:
+- [x] **Zombie Cleanup** — even with retries, a server crash during math leaves records as INITIATED. Run a background cron every 10 mins to find INITIATED records older than 5 mins and either re-process or mark them FAILED:
 
   ```sql
   UPDATE transfers
@@ -51,18 +45,15 @@ Then run the app:
     AND created_at < NOW() - INTERVAL '5 minutes';
   ```
 
-- [ ] **Reconciliation** — detect drift between account balances and the append-only ledger:
-
-  ```sql
-  SELECT
-    a.id,
-    a.balance AS current_balance,
-    COALESCE(SUM(l.amount), 0) AS ledger_sum,
-    (a.balance - COALESCE(SUM(l.amount), 0)) AS discrepancy
-  FROM accounts a
-  LEFT JOIN ledger_entries l ON a.id = l.account_id
-  GROUP BY a.id, a.balance;
-  ```
+- [ ] Reconciliation & State Resolution:
+  - **1. Ledger Integrity & Drift Audit (Balance Verification):**
+    - Periodically execute background reconciliation comparing `accounts.balance` against `COALESCE(SUM(ledger_entries.amount), 0)`.
+    - Detect any positive/negative balance drift caused by manual DB intervention, uncommitted partial writes, or race conditions.
+    - Alert immediately (Prometheus/Slack/PagerDuty) and freeze anomalous accounts from further outbound transfers.
+    - Resolve discrepancies solely via immutable adjustment ledger entries (`ADJUSTMENT_DEBIT` / `ADJUSTMENT_CREDIT`), never silent `UPDATE` overrides.
+  - **2. Terminal & Failed Transaction Resolution (DLQ & Recovery Strategy):**
+    - **Option A (Manual Audit & DLQ):** Route permanently `FAILED` transfers (after 3x optimistic lock retry exhaustion or sweep from zombie cleanup) to an operational DLQ / Admin Audit dashboard. Inform the client to initiate a new transaction with a fresh idempotency key.
+    - **Option B (Automated Recovery Replay):** For transfers marked `FAILED` due to transient system outages/database contention rather than permanent business rule rejections (e.g., `InsufficientBalanceException`), run a delayed reconciliation worker to re-evaluate and safely re-process.
 
 - [ ] **Recovery of pending transactions using background queues**
 - [ ] **Source of money definition** (`src of money`) — formalize where inbound funds originate.
@@ -72,7 +63,7 @@ Then run the app:
 > Must be done before any real exposure.
 
 - [ ] **API auth** — no authentication exists on any endpoint.
-- [ ] **Rate limiting** — protect transfer endpoints from abuse.
+- [x] **Rate limiting** — protect transfer endpoints from abuse.
 - [ ] **Restrict CORS** — `@CrossOrigin` is wide open on both controllers; lock down allowed origins once auth lands.
 - [ ] **Externalize DB credentials** — currently hardcoded in `application.yaml`; move to env vars / Spring profiles.
 
