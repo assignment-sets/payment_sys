@@ -5,6 +5,7 @@ import com.example.payment_system.entity.*;
 import com.example.payment_system.exception.*;
 import com.example.payment_system.repository.TransferRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.retry.annotation.Backoff;
@@ -17,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class TransferProcessor {
@@ -24,6 +26,7 @@ public class TransferProcessor {
     private final TransferRepository transferRepository;
     private final AccountService accountService;
     private final LedgerService ledgerService;
+    private final TransferRecoveryService transferRecoveryService;
 
     /**
      * Phase 1: Create the intent.
@@ -94,15 +97,15 @@ public class TransferProcessor {
 
     /**
      * Recovery logic: Only runs after max retries are exhausted.
+     * Delegates to TransferRecoveryService (a proxied bean) — calling
+     * this.markFailed() here would bypass the proxy and silently no-op.
+     *
+     * By the time this runs, the retried transaction has already rolled back,
+     * so the REQUIRES_NEW update cannot deadlock on row locks.
      */
     @Recover
     public void recover(OptimisticLockingFailureException ex, UUID transactionId) {
-        this.markFailed(transactionId);
-    }
-
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void markFailed(UUID transactionId) {
-        transferRepository.findByTransactionId(transactionId)
-                .ifPresent(Transfer::markFailed);
+        log.error("Transfer {} failed after exhausting retries on concurrent updates", transactionId, ex);
+        transferRecoveryService.markFailed(transactionId);
     }
 }
