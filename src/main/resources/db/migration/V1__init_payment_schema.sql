@@ -61,13 +61,28 @@ CREATE TABLE ledger_entries (
                                 id                  BIGSERIAL PRIMARY KEY,
                                 transaction_id      UUID NOT NULL,
                                 account_id          BIGINT NOT NULL,
-                                amount              BIGINT NOT NULL, -- positive or negative
+                                amount              BIGINT NOT NULL, -- negative for DEBIT, positive for CREDIT
                                 entry_type          VARCHAR(10) NOT NULL, -- DEBIT / CREDIT
                                 created_at          TIMESTAMPTZ NOT NULL DEFAULT now(),
 
                                 CONSTRAINT fk_ledger_account
                                     FOREIGN KEY (account_id)
-                                        REFERENCES accounts(id)
+                                        REFERENCES accounts(id),
+
+                                -- Each account may appear at most once per transaction.
+                                -- Combined with chk_different_accounts on transfers, this
+                                -- guarantees exactly two entries (one per side) per transfer.
+                                CONSTRAINT uq_ledger_transaction_account
+                                    UNIQUE (transaction_id, account_id),
+
+                                CONSTRAINT chk_entry_type
+                                    CHECK (entry_type IN ('DEBIT', 'CREDIT')),
+
+                                CONSTRAINT chk_amount_sign
+                                    CHECK (
+                                        (entry_type = 'DEBIT' AND amount < 0) OR
+                                        (entry_type = 'CREDIT' AND amount > 0)
+                                    )
 );
 
 -- =====================================================
@@ -76,8 +91,9 @@ CREATE TABLE ledger_entries (
 CREATE INDEX idx_ledger_account_id
     ON ledger_entries(account_id);
 
-CREATE INDEX idx_ledger_transaction_id
-    ON ledger_entries(transaction_id);
+-- NOTE: idx_ledger_transaction_id intentionally removed — the unique
+-- constraint uq_ledger_transaction_account covers lookups by transaction_id
+-- (leading column) without extra write overhead.
 
 CREATE INDEX idx_transfer_from_account
     ON transfers(from_account_id);

@@ -14,7 +14,13 @@ public class LedgerService {
 
     private final LedgerEntryRepository ledgerEntryRepository;
 
+    /**
+     * Records a DEBIT entry. The amount must be positive; the sign is applied
+     * here so callers cannot produce a sign/entry-type mismatch. The DB
+     * chk_amount_sign constraint is the final backstop.
+     */
     public void recordDebit(UUID transactionId, Account account, long amount) {
+        requirePositive(amount);
         ledgerEntryRepository.save(
                 LedgerEntry.builder()
                         .transactionId(transactionId)
@@ -26,7 +32,11 @@ public class LedgerService {
         );
     }
 
+    /**
+     * Records a CREDIT entry. The amount must be positive and is stored as-is.
+     */
     public void recordCredit(UUID transactionId, Account account, long amount) {
+        requirePositive(amount);
         ledgerEntryRepository.save(
                 LedgerEntry.builder()
                         .transactionId(transactionId)
@@ -36,5 +46,11 @@ public class LedgerService {
                         .createdAt(OffsetDateTime.now())
                         .build()
         );
+    }
+
+    private void requirePositive(long amount) {
+        if (amount <= 0) {
+            throw new IllegalArgumentException("Ledger amount must be positive, got: " + amount);
+        }
     }
 }
