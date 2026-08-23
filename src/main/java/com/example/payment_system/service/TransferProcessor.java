@@ -38,6 +38,11 @@ public class TransferProcessor {
             Account fromAccount = accountService.getAccount(request.fromAccountId());
             Account toAccount = accountService.getAccount(request.toAccountId());
 
+            // Fail fast: a frozen sender never even creates a transfer record.
+            if (fromAccount.getStatus() == AccountStatus.FROZEN) {
+                throw new AccountFrozenException(fromAccount.getId());
+            }
+
             Transfer transfer = Transfer.builder()
                     .transactionId(UUID.randomUUID())
                     .fromAccount(fromAccount)

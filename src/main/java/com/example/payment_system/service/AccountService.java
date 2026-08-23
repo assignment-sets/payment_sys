@@ -2,7 +2,9 @@ package com.example.payment_system.service;
 
 import com.example.payment_system.dto.AccountResponse;
 import com.example.payment_system.entity.Account;
+import com.example.payment_system.entity.AccountStatus;
 import com.example.payment_system.entity.User;
+import com.example.payment_system.exception.AccountFrozenException;
 import com.example.payment_system.exception.AccountNotFoundException;
 import com.example.payment_system.exception.InsufficientBalanceException;
 import com.example.payment_system.repository.AccountRepository;
@@ -47,6 +49,9 @@ public class AccountService {
     }
 
     public void debit(Account account, long amount) {
+        if (account.getStatus() != AccountStatus.ACTIVE) {
+            throw new AccountFrozenException(account.getId());
+        }
         if (account.getBalance() < amount) {
             throw new InsufficientBalanceException(account.getId());
         }

@@ -32,6 +32,11 @@ public class Account {
     @Column(name = "created_at", nullable = false, updatable = false)
     private OffsetDateTime createdAt;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    @Builder.Default
+    private AccountStatus status = AccountStatus.ACTIVE;
+
     /* =========================
        Domain behavior
        ========================= */
