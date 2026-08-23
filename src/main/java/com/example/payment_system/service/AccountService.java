@@ -29,9 +29,16 @@ public class AccountService {
         return AccountResponse.fromEntity(accountRepository.save(account));
     }
 
-    public Account getAccountByUserId(Long userId) {
+    public AccountResponse getAccountByUserId(Long userId) {
         return accountRepository.findByUserId(userId)
+                .map(AccountResponse::fromEntity)
                 .orElseThrow(() -> AccountNotFoundException.forUser(userId));
+    }
+
+    public AccountResponse getAccountResponse(Long accountId) {
+        return accountRepository.findByIdWithUser(accountId)
+                .map(AccountResponse::fromEntity)
+                .orElseThrow(() -> new AccountNotFoundException(accountId));
     }
 
     public Account getAccount(Long accountId) {

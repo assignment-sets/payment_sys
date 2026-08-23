@@ -64,17 +64,17 @@ set -a; . .env; set +a; mvn spring-boot:run
 
 - [ ] **API auth** — no authentication exists on any endpoint.
 - [x] **Rate limiting** — protect transfer endpoints from abuse.
-- [ ] **Restrict CORS** — `@CrossOrigin` is wide open on both controllers; lock down allowed origins once auth lands.
-- [ ] **Externalize DB credentials** — currently hardcoded in `application.yaml`; move to env vars / Spring profiles.
+- [x] **Restrict CORS** — `@CrossOrigin` is wide open on both controllers; lock down allowed origins once auth lands.
+- [x] **Externalize DB credentials** — currently hardcoded in `application.yaml`; move to env vars / Spring profiles.
 
 ## 🟢 P3 — Code Quality & API Polish
 
 > Improvements, not blockers.
 
-- [ ] **Typed exceptions** — replace generic `RuntimeException` in `AccountService.getAccountByUserId` with `AccountNotFoundException` (currently falls through to a 500).
-- [ ] **Better error mapping** — `GlobalExceptionHandler` maps all `PaymentException`s to 400; give AccountNotFound / DuplicateTransfer distinct status codes, and introduce a proper `ErrorResponse` DTO instead of `Map<String, String>`.
-- [ ] **Idempotent replay semantics** — return `200` (not `201`) when replaying an existing transfer, plus a `Location` header / transfer-id path for polling.
+- [x] **Typed exceptions** — replace generic `RuntimeException` in `AccountService.getAccountByUserId` with `AccountNotFoundException` (currently falls through to a 500).
+- [x] **Better error mapping** — `GlobalExceptionHandler` maps all `PaymentException`s to 400; give AccountNotFound / DuplicateTransfer distinct status codes, and introduce a proper `ErrorResponse` DTO instead of `Map<String, String>`.
+- [x] **Idempotent replay semantics** — return `200` (not `201`) when replaying an existing transfer, plus a `Location` header / transfer-id path for polling.
 - [ ] **Test coverage** — only the default context-load test exists. Add unit tests for the `TransferProcessor` state machine, idempotency/duplicate handling, optimistic-lock retry path, and integration tests for concurrent transfers.
 - [ ] **Pagination** — `GET /api/users` uses an unbounded `findAll`.
-- [ ] **Query optimization** — `getUserById` issues two separate queries (user + account); consider join fetch or an entity graph.
+- [x] **Query optimization** — split user and account into separate resources: `GET /api/users/{id}` fetches only the user; new `AccountController` serves `GET /api/accounts/user/{userId}` and `GET /api/accounts/{id}`, each resolved in a single query via join-fetch repository methods. Removed `DetailedUserResponse`.
 - [ ] **Caching** — cache user/account data and add an idempotency gate at the cache layer.

@@ -1,6 +1,5 @@
 package com.example.payment_system.service;
 
-import com.example.payment_system.dto.DetailedUserResponse;
 import com.example.payment_system.dto.UserRequest;
 import com.example.payment_system.dto.UserResponse;
 import com.example.payment_system.entity.Account;
@@ -31,14 +30,10 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
-    public DetailedUserResponse getUserById(Long id) {
-        User user = userRepository.findById(id)
+    public UserResponse getUserById(Long id) {
+        return userRepository.findById(id)
+                .map(UserResponse::fromEntity)
                 .orElseThrow(() -> new UserNotFoundException(id));
-
-        // Fetch the associated account
-        Account account = accountService.getAccountByUserId(id);
-
-        return DetailedUserResponse.fromEntity(user, account);
     }
 
     @Transactional

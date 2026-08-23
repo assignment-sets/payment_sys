@@ -1,6 +1,5 @@
 package com.example.payment_system.controller;
 
-import com.example.payment_system.dto.DetailedUserResponse;
 import com.example.payment_system.dto.UserRequest;
 import com.example.payment_system.dto.UserResponse;
 import com.example.payment_system.ratelimit.RateLimited;
@@ -31,7 +30,7 @@ public class UserController {
 
     @RateLimited(capacity = 30, refillTokens = 30)
     @GetMapping("/{id}")
-    public DetailedUserResponse getUser(@PathVariable @Positive Long id) {
+    public UserResponse getUser(@PathVariable @Positive Long id) {
         return userService.getUserById(id);
     }
 
