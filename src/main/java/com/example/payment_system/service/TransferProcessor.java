@@ -67,7 +67,7 @@ public class TransferProcessor {
     @Transactional
     public void executeMoneyMovement(UUID transactionId) {
         Transfer transfer = transferRepository.findByTransactionId(transactionId)
-                .orElseThrow(() -> new RuntimeException("Transfer not found"));
+                .orElseThrow(() -> new TransferNotFoundException(transactionId));
 
         // If it's already posted, stop (idempotency safety)
         if (transfer.getStatus() == TransferStatus.POSTED) return;

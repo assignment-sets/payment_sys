@@ -1,5 +1,6 @@
 package com.example.payment_system.entity;
 
+import com.example.payment_system.exception.InvalidTransferStateException;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -69,9 +70,7 @@ public class Transfer {
 
     private void ensureStatus(TransferStatus expected) {
         if (this.status != expected) {
-            throw new IllegalStateException(
-                    "Invalid state transition from " + this.status + " to " + expected
-            );
+            throw new InvalidTransferStateException(this.status, expected);
         }
     }
 }
