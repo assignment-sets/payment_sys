@@ -27,22 +27,30 @@ public interface TransferRepository extends JpaRepository<Transfer, Long> {
     @Modifying
     @Query("""
             UPDATE Transfer t
-            SET t.status = com.example.payment_system.entity.TransferStatus.FAILED
+            SET t.status = com.example.payment_system.entity.TransferStatus.FAILED,
+                t.failureCategory = :category,
+                t.attemptCount = :attempts
             WHERE t.transactionId = :transactionId
               AND t.status IN (com.example.payment_system.entity.TransferStatus.INITIATED,
                                com.example.payment_system.entity.TransferStatus.PENDING)
             """)
-    int markFailedByTransactionId(@Param("transactionId") UUID transactionId);
+    int markFailedByTransactionId(@Param("transactionId") UUID transactionId,
+                                  @Param("category") com.example.payment_system.entity.TransferFailureCategory category,
+                                  @Param("attempts") int attempts);
 
     /**
      * Zombie cleanup: fails transfers stuck in INITIATED (e.g. server crash
-     * mid-processing) older than the given cutoff. The status guard ensures
-     * in-flight or POSTED transfers are never touched.
+     * mid-processing) older than the given cutoff. Tags them TIMEOUT so the
+     * sweeper's conversions are distinguishable from business rejections and
+     * retry-exhausted transient failures. The status guard ensures in-flight
+     * or POSTED transfers are never touched.
      */
     @Modifying
     @Query("""
             UPDATE Transfer t
-            SET t.status = com.example.payment_system.entity.TransferStatus.FAILED
+            SET t.status = com.example.payment_system.entity.TransferStatus.FAILED,
+                t.failureCategory = com.example.payment_system.entity.TransferFailureCategory.TIMEOUT,
+                t.attemptCount = 1
             WHERE t.status = com.example.payment_system.entity.TransferStatus.INITIATED
               AND t.createdAt < :cutoff
             """)

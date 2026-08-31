@@ -41,7 +41,7 @@ public class TransferZombieCleanup {
         OffsetDateTime cutoff = OffsetDateTime.now().minusNanos(staleAfterMs * 1_000_000);
         int cleaned = transferRepository.failStaleInitiated(cutoff);
         if (cleaned > 0) {
-            log.warn("Zombie cleanup: marked {} stale INITIATED transfers as FAILED", cleaned);
+            log.warn("Zombie cleanup: marked {} stale INITIATED transfers as FAILED (TIMEOUT)", cleaned);
         }
     }
 }

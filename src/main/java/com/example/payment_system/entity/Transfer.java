@@ -44,6 +44,14 @@ public class Transfer {
     @Column(name = "created_at", nullable = false, updatable = false)
     private OffsetDateTime createdAt;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "failure_category", length = 20)
+    private TransferFailureCategory failureCategory;
+
+    @Column(name = "attempt_count", nullable = false)
+    @Builder.Default
+    private int attemptCount = 0;
+
     /* =========================
        State machine rules
        ========================= */

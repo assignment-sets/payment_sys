@@ -111,6 +111,6 @@ public class TransferProcessor {
     @Recover
     public void recover(OptimisticLockingFailureException ex, UUID transactionId) {
         log.error("Transfer {} failed after exhausting retries on concurrent updates", transactionId, ex);
-        transferRecoveryService.markFailed(transactionId);
+        transferRecoveryService.markFailed(transactionId, TransferFailureCategory.TRANSIENT, 3);
     }
 }

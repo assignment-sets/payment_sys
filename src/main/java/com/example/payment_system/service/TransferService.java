@@ -4,6 +4,7 @@ import com.example.payment_system.dto.CreateTransferRequest;
 import com.example.payment_system.dto.IdempotentResult;
 import com.example.payment_system.dto.TransferResponse;
 import com.example.payment_system.entity.Transfer;
+import com.example.payment_system.entity.TransferFailureCategory;
 import com.example.payment_system.entity.TransferStatus;
 import com.example.payment_system.exception.DuplicateTransferException;
 import com.example.payment_system.exception.PaymentException;
@@ -46,7 +47,8 @@ public class TransferService {
             transferProcessor.executeMoneyMovement(transfer.getTransactionId());
         } catch (PaymentException e) {
             log.warn("Transfer {} failed: {}", transfer.getTransactionId(), e.getMessage());
-            transferRecoveryService.markFailed(transfer.getTransactionId());
+            transferRecoveryService.markFailed(
+                    transfer.getTransactionId(), TransferFailureCategory.BUSINESS, 1);
             throw e;
         } catch (Exception e) {
             log.error("Transfer {} failed with unexpected error", transfer.getTransactionId(), e);

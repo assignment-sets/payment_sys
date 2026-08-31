@@ -1,5 +1,6 @@
 package com.example.payment_system.service;
 
+import com.example.payment_system.entity.TransferFailureCategory;
 import com.example.payment_system.repository.TransferRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,7 +24,9 @@ public class TransferRecoveryService {
     private final TransferRepository transferRepository;
 
     /**
-     * Marks a transfer FAILED in its own transaction.
+     * Marks a transfer FAILED in its own transaction with a categorized
+     * failure. Callers choose BUSINESS (single deterministic rejection),
+     * TRANSIENT (retry-exhausted), or TIMEOUT (watchdog conversion).
      *
      * Runs in REQUIRES_NEW because callers invoke this AFTER their money-movement
      * transaction has rolled back; a fresh tx guarantees the status change commits
@@ -33,12 +36,17 @@ public class TransferRecoveryService {
      * from being clobbered by a stale failure.
      */
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void markFailed(UUID transactionId) {
-        int updated = transferRepository.markFailedByTransactionId(transactionId);
+    public void markFailed(UUID transactionId, TransferFailureCategory category, int attempts) {
+        int updated = transferRepository.markFailedByTransactionId(transactionId, category, attempts);
         if (updated > 0) {
-            log.warn("Transfer {} marked FAILED", transactionId);
+            log.warn("Transfer {} marked FAILED (category={}, attempts={})", transactionId, category, attempts);
         } else {
             log.info("Transfer {} not marked FAILED (already terminal or not found)", transactionId);
         }
+    }
+
+    /** Legacy overload — defaults to a single-attempt BUSINESS failure. */
+    public void markFailed(UUID transactionId) {
+        markFailed(transactionId, TransferFailureCategory.BUSINESS, 1);
     }
 }
