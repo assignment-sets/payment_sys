@@ -59,10 +59,8 @@ set -a; . .env; set +a; mvn spring-boot:run
 
   - **2. Terminal & Failed Transaction Resolution (DLQ & Recovery Strategy):**
     - **Option A (Manual Audit & DLQ):** Route permanently `FAILED` transfers (after 3x optimistic lock retry exhaustion or sweep from zombie cleanup) to an operational DLQ / Admin Audit dashboard. Inform the client to initiate a new transaction with a fresh idempotency key.
-    - **Option B (Automated Recovery Replay):** For transfers marked `FAILED` due to transient system outages/database contention rather than permanent business rule rejections (e.g., `InsufficientBalanceException`), run a delayed reconciliation worker to re-evaluate and safely re-process.
 
-- [ ] **Recovery of pending transactions using background queues**
-- [ ] **Source of money definition** (`src of money`) — formalize where inbound funds originate.
+- [x] **Source of money definition** (`src of money`) — formalize where inbound funds originate.
 
 ## 🟡 P2 — Security & Hardening
 
@@ -84,3 +82,28 @@ set -a; . .env; set +a; mvn spring-boot:run
 - [ ] **Pagination** — `GET /api/users` uses an unbounded `findAll`.
 - [x] **Query optimization** — split user and account into separate resources: `GET /api/users/{id}` fetches only the user; new `AccountController` serves `GET /api/accounts/user/{userId}` and `GET /api/accounts/{id}`, each resolved in a single query via join-fetch repository methods. Removed `DetailedUserResponse`.
 - [ ] **Caching** — cache user/account data and add an idempotency gate at the cache layer.
+
+## 🔵 P4 — Scaling & Throughput
+
+> How to handle a reasonable amount of requests (1k–5k tps on a single DB) without going to FAANG-scale. Tier 0 is config-only and can be done now; Tier 1 decouples admission from execution via a worker queue (deferred).
+
+### Tier 0 — Config-only (no architecture change)
+
+- [ ] **Virtual threads (Loom)** — set `spring.threads.virtual.enabled=true` in `application.yaml` (Java 21). Tomcat mounts virtual threads instead of platform threads; fixes thread-per-request blocking on `TransferProcessor.executeMoneyMovement` row locks / retries with ~1 line change.
+- [ ] **Hikari pool tuning** — in `application.yaml` `spring.datasource.hikari` set `maximum-pool-size: 20`, `minimum-idle: 5`, `connection-timeout` / `idle-timeout`. The money-movement tx holds 2 row locks + 2 ledger inserts — pool exhaustion is the first bottleneck.
+- [ ] **Do not cache `accounts.balance`** — balance is derived from the immutable `ledger_entries` table; a stale cache reintroduces the drift bug that `scripts/reconciliation/check_drift.sql` detects. Cache `User`/account metadata only (e.g. `TTL 30s` with explicit invalidation on `FROZEN`).
+
+### Tier 1 — Async worker queue (admission vs execution)
+
+- [ ] **Make `POST /api/transfers` async (202 Accepted)** — `TransferService.createTransfer` should persist only `INITIATED` via `TransferProcessor.createInitialRecord` and return `202 {transactionId, status=INITIATED}`; client polls `GET /api/transfers/{id}`. The current sync path (`createInitialRecord` + `executeMoneyMovement` in the HTTP thread) is the throughput ceiling.
+- [ ] **Choose a queue backend** — keep the `transfers` table as the outbox log and add a worker pool consuming it:
+  - **DB as queue (polling)** — `SELECT ... FOR UPDATE SKIP LOCKED WHERE status='INITIATED' LIMIT n` — zero new infra, reuses `TransferRepository` + `TransferZombieCleanup` pattern, polls DB.
+  - **Redis Streams (fits current stack)** — `XADD transfers:pending {txId}` + `XREADGROUP` consumer group on the existing `redis:7-alpine` (`docker-compose.yml`). Needs Lettuce stream config + a DLQ stream for permanently `FAILED` (`BUSINESS/TRANSIENT/TIMEOUT`).
+  - **RabbitMQ / SQS / Kafka** — if the learning goal is broker semantics (acks, requeue, partition by `fromAccountId` to avoid cross-shard contention). Heavier ops, deferred.
+- [ ] **Bounded worker pool** — `@EnableAsync` + `ThreadPoolTaskExecutor` (`core=20 max=50 queueCapacity=500`) independent of Tomcat acceptors; backpressure becomes queue depth, not thread starvation. Retain ordered locking on `(min(from,to))` in `TransferProcessor`.
+- [ ] **Backpressure & bulkheads** — keep `RateLimitAspect` (Redis Bucket4j) as admission control; add a circuit-breaker/bulkhead around the worker execution so contention on one hot account doesn't starve others.
+
+### Tier 2 — DB scaling (single primary)
+
+- [ ] **Ledger growth** — `ledger_entries` dominates size; add `BRIN` on `created_at`, retain `uq_ledger_transaction_account` / `chk_entry_type` / `chk_amount_sign` from `V1`/`V2`, consider monthly partitioning. Keep `V4` `idx_transfers_failed_category` for DLQ scans.
+- [ ] **Read/write split (later)** — `AccountService` balance/metadata reads can target a replica; all transfers and ledger writes stay on the primary. Not needed until read load dominates.
