@@ -1,0 +1,111 @@
+# Latency probe 20260904-092356
+# N=100 c=1 from=1 to=2 amount=100 base=http://localhost:8080
+# commit=666fd01 virtual_threads=  threads:     virtual:       enabled: true 
+#
+  [1/100] ok   time=0.043705s key=8d1c31a8-cddc-4c62-82dc-5a5a2f9bf271
+  [2/100] ok   time=0.035643s key=e01f4964-7b8d-4ffc-a021-68446ab54308
+  [3/100] ok   time=0.038243s key=64473151-5ed2-4335-8b67-f2bc0da6a284
+  [4/100] ok   time=0.037775s key=56f72faf-ee8b-4917-bbd0-4ba7aa6effd5
+  [5/100] ok   time=0.037979s key=73dc2587-5181-4d77-b6b5-7b969d892969
+  [6/100] ok   time=0.033565s key=b4bdfc69-f23d-425d-a32e-879fb8784d01
+  [7/100] ok   time=0.036667s key=7e3ec2d1-bc46-4e2f-9d41-630176b41dbd
+  [8/100] ok   time=0.035555s key=74f551f8-8055-4dd3-972b-1d58e1492e78
+  [9/100] ok   time=0.042940s key=c640485b-fee9-41b2-978f-5ba512c44e81
+  [10/100] ok   time=0.036547s key=efa78848-c161-485b-a4db-a9122ac342ea
+  [11/100] ok   time=0.035056s key=f7c8a9c1-5707-4453-82bc-bd396d5ccaa8
+  [12/100] ok   time=0.031706s key=a034dee1-1d50-4cbc-80a0-6b3c4be99be9
+  [13/100] ok   time=0.039969s key=61a0aa11-238c-443f-a51b-8d64e8bef1cf
+  [14/100] ok   time=0.040394s key=899ae7bb-fa62-4f86-a93a-e5e6199d9e55
+  [15/100] ok   time=0.038900s key=ed61fb80-7c2c-4c07-a0e4-0d78908c72a3
+  [16/100] ok   time=0.031721s key=3c8b4f54-3632-483e-a013-cfbc1c969493
+  [17/100] ok   time=0.030857s key=91f06a44-3837-44e1-92b8-83df00d04bbf
+  [18/100] ok   time=0.029236s key=2d96c5cb-362a-4db8-a2ab-f4b75c1cafdb
+  [19/100] ok   time=0.028604s key=a344e17a-504a-4a9c-ae12-d020839559da
+  [20/100] ok   time=0.032705s key=33a13663-b572-4556-bb85-012a50257840
+  [21/100] ok   time=0.031776s key=66aa2a2e-3323-4db2-9c39-3739a1e08bbe
+  [22/100] ok   time=0.034946s key=afa26a2d-773c-41e8-a524-1819890614c6
+  [23/100] ok   time=0.025887s key=04241b2d-999b-43f6-b78d-a980df2b4303
+  [24/100] ok   time=0.031282s key=914c86ae-ce81-4a85-9df5-d209303afa9f
+  [25/100] ok   time=0.028272s key=9589f1dc-092d-4dad-85c1-946963282caf
+  [26/100] ok   time=0.032272s key=d4748706-b783-4306-b309-03a9083061c9
+  [27/100] ok   time=0.031779s key=ff96d219-a684-4bba-9be0-741199f0fa43
+  [28/100] ok   time=0.031816s key=c4850397-1a12-4f4b-b696-b1fde9222855
+  [29/100] ok   time=0.024093s key=af27b89e-4989-4b79-96bb-95de88469750
+  [30/100] ok   time=0.028177s key=c877836a-e8e0-45df-9aa9-1fedd996e530
+  [31/100] ok   time=0.036101s key=da086ca3-59ac-4ade-bf2f-3f348a2536a6
+  [32/100] ok   time=0.056665s key=75148414-c77c-4e8c-bf37-44afee714a46
+  [33/100] ok   time=0.025686s key=e625fa1c-7eb2-4c56-bc70-14b4bd630081
+  [34/100] ok   time=0.027095s key=48c43767-17d0-418f-a69e-78705bbb2807
+  [35/100] ok   time=0.027421s key=20b5da51-39f1-439c-8e57-b50f2d1a8c1f
+  [36/100] ok   time=0.027436s key=064d714a-ad56-4322-a88b-0d045f0ab634
+  [37/100] ok   time=0.026378s key=f88756b8-2aca-47af-982f-b74364388ed9
+  [38/100] ok   time=0.028065s key=079a6289-7839-4b8b-b697-12102e9de717
+  [39/100] ok   time=0.030872s key=d1ba4073-89f2-4611-aac8-6f942014329d
+  [40/100] ok   time=0.023888s key=0a6a7d78-38c3-4f2a-a820-f10f83d86cc2
+  [41/100] ok   time=0.024658s key=f5dc96ee-3fe1-4852-bd08-552cc4c7b7cc
+  [42/100] ok   time=0.031640s key=d60d17bc-fd3c-43f6-971e-a7827e8f8efd
+  [43/100] ok   time=0.027123s key=eb1fef66-4fda-46c5-b31a-220964e78650
+  [44/100] ok   time=0.024069s key=80056f2d-7d4e-4218-922c-5259b5f25bc0
+  [45/100] ok   time=0.022947s key=e8003934-adf8-42a4-a67e-7668cc50eaa5
+  [46/100] ok   time=0.026403s key=56bf319c-f9b2-4960-8726-683484d3e9e2
+  [47/100] ok   time=0.027357s key=24424313-8eba-4b28-86f3-19ef40c81f3a
+  [48/100] ok   time=0.025342s key=51ec1e23-24cc-43b1-b2ca-4e87b9f02a51
+  [49/100] ok   time=0.025898s key=fb212eb2-2c50-4cdd-946f-caa692bd2c10
+  [50/100] ok   time=0.028088s key=c10a24e3-0554-4a0d-bfed-bed7ae650907
+  [51/100] ok   time=0.025491s key=df4c87f5-8133-46be-a5f4-4cae8950a160
+  [52/100] ok   time=0.018676s key=455f924b-ad5b-46eb-8272-1ca97868e015
+  [53/100] ok   time=0.024739s key=3bbccf34-2590-4344-a07d-5f8fa96a8dda
+  [54/100] ok   time=0.028623s key=d0293426-7b5a-4f45-9ab9-8f538266b758
+  [55/100] ok   time=0.038166s key=4f1e00e9-81e8-4f16-ba70-6f87bef2273b
+  [56/100] ok   time=0.022031s key=5884282d-b937-41ac-84c5-991006a29baa
+  [57/100] ok   time=0.025289s key=8a39df87-2ad0-4b60-9c7b-3656f7e843d8
+  [58/100] ok   time=0.027682s key=4e5bbc15-7d46-4bf6-9c61-21cef266a6db
+  [59/100] ok   time=0.028597s key=8311cd44-8478-4a46-a3c2-2928913e1e4d
+  [60/100] ok   time=0.024295s key=63d2926b-63be-4311-a3de-3a12bf8ef4c3
+  [61/100] ok   time=0.037168s key=10c9f2f2-8f57-42e8-b6f1-3de39db5adb3
+  [62/100] ok   time=0.044538s key=3a84cbaf-20b4-48c6-8695-f8860c24512e
+  [63/100] ok   time=0.032028s key=80a41424-306b-4af1-ad7d-0bdfb30e866a
+  [64/100] ok   time=0.021828s key=24ff226a-6ac5-4eb1-8515-c5c56ea9d9cc
+  [65/100] ok   time=0.022821s key=a3c36da2-e914-4a8b-90cc-afe7f5e7e379
+  [66/100] ok   time=0.020891s key=f678d6e9-ce37-463e-8696-379ce0285b97
+  [67/100] ok   time=0.019656s key=54a00d0a-806c-402a-9889-63caafc64ad0
+  [68/100] ok   time=0.021559s key=75829c9b-b9f9-45ab-9037-b630a1f86dcb
+  [69/100] ok   time=0.020771s key=10455497-8c84-45e4-80fd-82fda1128f4e
+  [70/100] ok   time=0.020769s key=a73b985b-6335-46bc-a5b8-788219828d4c
+  [71/100] ok   time=0.022521s key=7adf87a1-56b1-4821-b696-ea25cc96cd8a
+  [72/100] ok   time=0.022540s key=f74bea60-a156-49a8-98e6-830ac0aa5309
+  [73/100] ok   time=0.022089s key=c9a3df87-0e58-4e3c-8fe7-844accf67a24
+  [74/100] ok   time=0.020923s key=721e5c3a-cf7b-4f03-9655-4a9f7a2e23e3
+  [75/100] ok   time=0.025155s key=8b7c83c0-cf64-4225-97c8-75b03dffeab7
+  [76/100] ok   time=0.021230s key=bcb37d40-ca96-4bbe-84a7-0ef92a0cf233
+  [77/100] ok   time=0.019710s key=7e6ba321-7356-48ad-b3fe-fc25dae3db3e
+  [78/100] ok   time=0.020599s key=edacb93e-eb2c-418b-8dba-ed0b4c11e1bf
+  [79/100] ok   time=0.021753s key=b0a2ab72-ad1d-4e51-a1a5-614f30713e39
+  [80/100] ok   time=0.028946s key=7779896b-7007-43b2-9f08-28b830343e81
+  [81/100] ok   time=0.022343s key=45445749-5693-47ba-aa0b-48dee8c4f80c
+  [82/100] ok   time=0.023644s key=d2d1827b-7ee3-403d-916a-e43b0f11938b
+  [83/100] ok   time=0.024223s key=c13915a8-e232-45aa-83a3-bff1907f7d37
+  [84/100] ok   time=0.041183s key=02b3f152-57a2-4069-85d4-c3a695472493
+  [85/100] ok   time=0.031470s key=257b58ac-9c1c-4cb3-a4e9-8921ec0e7d9b
+  [86/100] ok   time=0.021530s key=3c7105c2-9cae-4f19-a42d-fbbbf55c7c1b
+  [87/100] ok   time=0.021241s key=518ca990-006d-4bfc-a6fd-9f675b7b7cbe
+  [88/100] ok   time=0.021222s key=bd3fb1f5-da8d-49cc-816f-8d5ef3207fae
+  [89/100] ok   time=0.021736s key=c9e9f92b-e4ab-4f38-bb4e-26fe0f8699ee
+  [90/100] ok   time=0.020097s key=498c740e-2f5b-4a8c-b6aa-1564d12cf9cf
+  [91/100] ok   time=0.017440s key=90e3e897-8fb8-4c72-993f-ecea7d354cd6
+  [92/100] ok   time=0.020961s key=099f875f-d1f8-475b-b6dd-728edd9a98c2
+  [93/100] ok   time=0.018469s key=e3bb7d2b-0174-416c-91ac-dc14f888698a
+  [94/100] ok   time=0.021362s key=a84a2aba-51f6-4679-8598-f29b9f316d7f
+  [95/100] ok   time=0.021093s key=af6243a1-99ee-40ce-b9af-2e6a6d038747
+  [96/100] ok   time=0.016875s key=fd917c27-b2ab-4a43-85e5-af62d6bc944b
+  [97/100] ok   time=0.018540s key=830f1d9c-e14c-40b1-907c-a2e82e3c89ed
+  [98/100] ok   time=0.021980s key=93041da8-675e-47e8-b101-5d7f54cb1bc2
+  [99/100] ok   time=0.022221s key=0ef664e1-2661-49ea-860d-1699dc92c31f
+  [100/100] ok   time=0.018811s key=a6006b82-465c-4a3d-86fd-5806857bc9e5
+
+=== Summary ===
+succeeded=100 failed=0 total=100
+mean=0.027887s  min=0.016875s  max=0.056665s  p50=0.026378s  p95=0.040394s
+log=scripts/latency/logs/latency-20260904-092356.log
+fromAcct=1 toAcct=2 amount=100
+RESULT mean=0.027887 min=0.016875 max=0.056665 p50=0.026378 p95=0.040394 succeeded=100 failed=0
