@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -28,6 +29,7 @@ import java.time.Duration;
 @Slf4j
 @Aspect
 @Component
+@ConditionalOnProperty(name = "rate-limit.enabled", havingValue = "true", matchIfMissing = true)
 @RequiredArgsConstructor
 public class RateLimitAspect {
 
