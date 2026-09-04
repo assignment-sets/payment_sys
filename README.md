@@ -91,7 +91,7 @@ set -a; . .env; set +a; mvn spring-boot:run
 
 - [x] **Virtual threads (Loom)** — set `spring.threads.virtual.enabled=true` in `application.yaml` (Java 21). Tomcat mounts virtual threads instead of platform threads; fixes thread-per-request blocking on `TransferProcessor.executeMoneyMovement` row locks / retries with ~1 line change.
 - [x] **Hikari pool tuning** — in `application.yaml` `spring.datasource.hikari` set `maximum-pool-size: 20`, `minimum-idle: 5`, `connection-timeout` / `idle-timeout`. The money-movement tx holds 2 row locks + 2 ledger inserts — pool exhaustion is the first bottleneck.
-- [ ] **Do not cache `accounts.balance`** — balance is derived from the immutable `ledger_entries` table; a stale cache reintroduces the drift bug that `scripts/reconciliation/check_drift.sql` detects. Cache `User`/account metadata only (e.g. `TTL 30s` with explicit invalidation on `FROZEN`).
+- [x] **Do not cache `accounts.balance`** — balance is derived from the immutable `ledger_entries` table; a stale cache reintroduces the drift bug that `scripts/reconciliation/check_drift.sql` detects. Cache `User`/account metadata only (e.g. `TTL 30s` with explicit invalidation on `FROZEN`). Currently no balance caching is implemented — verified no `@Cacheable`/`CacheManager` usage.
 
 ### Tier 1 — Async worker queue (admission vs execution)
 
