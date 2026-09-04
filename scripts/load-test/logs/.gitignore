@@ -1,0 +1,5 @@
+# k6 reports — raw json and summaries are large
+*.json
+*.log
+!sample-k6.json
+!sample-k6.summary.json
