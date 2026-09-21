@@ -34,3 +34,7 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Benchmark (generated) ###
+scripts/load-test/.bench.accounts.json
+scripts/load-test/.bench.env
