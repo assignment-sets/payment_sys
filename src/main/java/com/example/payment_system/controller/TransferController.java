@@ -7,9 +7,11 @@ import com.example.payment_system.ratelimit.RateLimited;
 import com.example.payment_system.service.TransferService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.net.URI;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/transfers")
@@ -26,12 +28,19 @@ public class TransferController {
         IdempotentResult<TransferResponse> result = transferService.createTransfer(request);
 
         if (result.newlyCreated()) {
+            URI location = URI.create("/api/transfers/" + result.data().transactionId());
             return ResponseEntity
-                    .status(HttpStatus.CREATED)
+                    .accepted()
+                    .location(location)
                     .body(result.data());
         }
 
         return ResponseEntity
                 .ok(result.data());
+    }
+
+    @GetMapping("/{transactionId}")
+    public ResponseEntity<TransferResponse> getTransfer(@PathVariable UUID transactionId) {
+        return ResponseEntity.ok(transferService.getTransfer(transactionId));
     }
 }
