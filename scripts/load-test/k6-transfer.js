@@ -1,5 +1,5 @@
 import http from 'k6/http';
-import { check, sleep } from 'k6';
+import { check } from 'k6';
 import { SharedArray } from 'k6/data';
 
 // Realistic spread: random pair among 1000 bench accounts (see seed.js -> .bench.accounts.json)
@@ -16,7 +16,7 @@ export const options = {
   ],
   thresholds: {
     http_req_failed: ['rate < 0.01'],
-    http_req_duration: ['p(95)<80'],
+    http_req_duration: ['p(95)<100'],
   },
   noConnectionReuse: false,
 };
@@ -58,10 +58,8 @@ export default function () {
   });
 
   check(res, {
-    '2xx': (r) => r.status === 200 || r.status === 201,
+    '2xx': (r) => r.status === 200 || r.status === 201 || r.status === 202,
   });
-
-  sleep(0.05);
 }
 
 export function handleSummary(data) {

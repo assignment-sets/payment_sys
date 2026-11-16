@@ -72,13 +72,10 @@
 
 ### Tier 1 — Async worker queue (admission vs execution)
 
-- [ ] **Make `POST /api/transfers` async (202 Accepted)** — `TransferService.createTransfer` should persist only `INITIATED` via `TransferProcessor.createInitialRecord` and return `202 {transactionId, status=INITIATED}`; client polls `GET /api/transfers/{id}`. The current sync path (`createInitialRecord` + `executeMoneyMovement` in the HTTP thread) is the throughput ceiling.
-- [ ] **Choose a queue backend** — keep the `transfers` table as the outbox log and add a worker pool consuming it:
-  - **DB as queue (polling)** — `SELECT ... FOR UPDATE SKIP LOCKED WHERE status='INITIATED' LIMIT n` — zero new infra, reuses `TransferRepository` + `TransferZombieCleanup` pattern, polls DB.
-  - **Redis Streams (fits current stack)** — `XADD transfers:pending {txId}` + `XREADGROUP` consumer group on the existing `redis:7-alpine` (`docker-compose.yml`). Needs Lettuce stream config + a DLQ stream for permanently `FAILED` (`BUSINESS/TRANSIENT/TIMEOUT`).
-  - **RabbitMQ / SQS / Kafka** — if the learning goal is broker semantics (acks, requeue, partition by `fromAccountId` to avoid cross-shard contention). Heavier ops, deferred.
-- [ ] **Bounded worker pool** — `@EnableAsync` + `ThreadPoolTaskExecutor` (`core=20 max=50 queueCapacity=500`) independent of Tomcat acceptors; backpressure becomes queue depth, not thread starvation. Retain ordered locking on `(min(from,to))` in `TransferProcessor`.
-- [ ] **Backpressure & bulkheads** — keep `RateLimitAspect` (Redis Bucket4j) as admission control; add a circuit-breaker/bulkhead around the worker execution so contention on one hot account doesn't starve others.
+- [x] **Make `POST /api/transfers` async (202 Accepted)** — `TransferService.createTransfer` persists `INITIATED` via `TransferProcessor.createInitialRecord`, publishes to Redis Streams, and returns `202 Accepted` + `Location`; `GET /api/transfers/{transactionId}` serves polling.
+- [x] **Choose a queue backend** — dedicated **Redis Streams** container (`redis-queue` on `6380`, AOF enabled) with `transfers:pending` + `transfer-workers` consumer group and `transfers:dlq` dead-letter stream.
+- [x] **Bounded worker pool** — `ThreadPoolTaskExecutor` (`core=8 max=12 queueCapacity=500`) independent of Tomcat acceptors, paired with Hikari `maximum-pool-size: 35` so workers cannot starve HTTP admission.
+- [x] **Backpressure & bulkheads** — kept `RateLimitAspect` (Redis Bucket4j) for admission control; added Resilience4j `@Bulkhead` (`maxConcurrentCalls=10`) + `@CircuitBreaker` around worker execution (`TransferExecutionDelegate`).
 
 ### Tier 2 — DB scaling (single primary)
 
