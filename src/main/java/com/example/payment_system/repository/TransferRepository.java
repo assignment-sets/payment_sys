@@ -14,6 +14,16 @@ public interface TransferRepository extends JpaRepository<Transfer, Long> {
 
     Optional<Transfer> findByTransactionId(UUID transactionId);
 
+    @Query("""
+            SELECT t FROM Transfer t
+            JOIN FETCH t.fromAccount fa
+            JOIN FETCH fa.user
+            JOIN FETCH t.toAccount ta
+            JOIN FETCH ta.user
+            WHERE t.transactionId = :transactionId
+            """)
+    Optional<Transfer> findByTransactionIdWithUsers(@Param("transactionId") UUID transactionId);
+
     Optional<Transfer> findByFromAccountIdAndIdempotencyKey(
             Long fromAccountId,
             String idempotencyKey

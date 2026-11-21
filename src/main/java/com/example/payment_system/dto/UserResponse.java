@@ -1,5 +1,6 @@
 package com.example.payment_system.dto;
 
+import com.example.payment_system.entity.Role;
 import com.example.payment_system.entity.User;
 import java.time.OffsetDateTime;
 
@@ -7,6 +8,7 @@ public record UserResponse(
         Long id,
         String name,
         String email,
+        Role role,
         OffsetDateTime createdAt
 ) {
     public static UserResponse fromEntity(User user) {
@@ -14,6 +16,7 @@ public record UserResponse(
                 user.getId(),
                 user.getName(),
                 user.getEmail(),
+                user.getRole(),
                 user.getCreatedAt()
         );
     }

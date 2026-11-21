@@ -7,9 +7,11 @@ import com.example.payment_system.entity.Transfer;
 import com.example.payment_system.exception.DuplicateTransferException;
 import com.example.payment_system.exception.TransferNotFoundException;
 import com.example.payment_system.repository.TransferRepository;
+import com.example.payment_system.security.AuthenticatedUser;
 import com.example.payment_system.stream.TransferStreamProducer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -54,6 +56,22 @@ public class TransferService {
         return transferRepository.findByTransactionId(transactionId)
                 .map(this::mapToResponse)
                 .orElseThrow(() -> new TransferNotFoundException(transactionId));
+    }
+
+    @Transactional(readOnly = true)
+    public TransferResponse getTransfer(UUID transactionId, AuthenticatedUser currentUser) {
+        Transfer transfer = transferRepository.findByTransactionIdWithUsers(transactionId)
+                .orElseThrow(() -> new TransferNotFoundException(transactionId));
+
+        if (currentUser != null && !currentUser.isAdmin()) {
+            Long senderUserId = transfer.getFromAccount().getUser().getId();
+            Long receiverUserId = transfer.getToAccount().getUser().getId();
+            if (!senderUserId.equals(currentUser.id()) && !receiverUserId.equals(currentUser.id())) {
+                throw new AccessDeniedException("You do not have access to transfer " + transactionId);
+            }
+        }
+
+        return mapToResponse(transfer);
     }
 
     private TransferResponse mapToResponse(Transfer t) {

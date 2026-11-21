@@ -1,5 +1,6 @@
 package com.example.payment_system.service;
 
+import com.example.payment_system.cache.AccountCacheService;
 import com.example.payment_system.dto.AccountResponse;
 import com.example.payment_system.entity.Account;
 import com.example.payment_system.entity.AccountStatus;
@@ -29,6 +30,7 @@ public class AccountService {
 
     private final AccountRepository accountRepository;
     private final LedgerService ledgerService;
+    private final AccountCacheService accountCacheService;
 
     public AccountResponse createAccount(User user) {
         Account account = Account.builder()

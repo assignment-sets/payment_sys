@@ -2,17 +2,20 @@ package com.example.payment_system.service;
 
 import com.example.payment_system.dto.UserRequest;
 import com.example.payment_system.dto.UserResponse;
-import com.example.payment_system.entity.Account;
+import com.example.payment_system.entity.Role;
 import com.example.payment_system.entity.User;
 import com.example.payment_system.exception.DuplicateUserException;
-import com.example.payment_system.repository.UserRepository;
 import com.example.payment_system.exception.UserNotFoundException;
+import com.example.payment_system.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
 @Service
@@ -21,6 +24,7 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final AccountService accountService;
+    private final PasswordEncoder passwordEncoder;
 
     @Transactional(readOnly = true)
     public List<UserResponse> getAllUsers() {
@@ -29,6 +33,7 @@ public class UserService {
                 .collect(Collectors.toList());
     }
 
+    @Cacheable(cacheNames = "users", key = "#id")
     @Transactional(readOnly = true)
     public UserResponse getUserById(Long id) {
         return userRepository.findById(id)
@@ -38,21 +43,28 @@ public class UserService {
 
     @Transactional
     public UserResponse createUser(UserRequest request) {
-        userRepository.findByEmail(request.email()).ifPresent(u -> {
-            throw new DuplicateUserException(request.email());
+        Role role = request.role() != null ? request.role() : Role.USER;
+        User saved = createUserWithAccount(request.name(), request.email(), request.password(), role);
+        return UserResponse.fromEntity(saved);
+    }
+
+    @Transactional
+    public User createUserWithAccount(String name, String email, String rawPassword, Role role) {
+        String normalizedEmail = email.trim().toLowerCase(Locale.ROOT);
+        userRepository.findByEmail(normalizedEmail).ifPresent(u -> {
+            throw new DuplicateUserException(normalizedEmail);
         });
 
         User user = User.builder()
-                .name(request.name())
-                .email(request.email())
+                .name(name.trim())
+                .email(normalizedEmail)
+                .passwordHash(passwordEncoder.encode(rawPassword))
+                .role(role)
                 .createdAt(OffsetDateTime.now())
                 .build();
 
         User savedUser = userRepository.save(user);
-
-        // Create the account for the new user
         accountService.createAccount(savedUser);
-
-        return UserResponse.fromEntity(savedUser);
+        return savedUser;
     }
 }

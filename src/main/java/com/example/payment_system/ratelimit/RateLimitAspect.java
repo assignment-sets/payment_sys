@@ -1,6 +1,7 @@
 package com.example.payment_system.ratelimit;
 
 import com.example.payment_system.exception.RateLimitExceededException;
+import com.example.payment_system.security.AuthenticatedUser;
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.BucketConfiguration;
 import io.github.bucket4j.ConsumptionProbe;
@@ -12,6 +13,8 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -40,7 +43,7 @@ public class RateLimitAspect {
         HttpServletRequest request = ((ServletRequestAttributes)
                 RequestContextHolder.currentRequestAttributes()).getRequest();
 
-        String key = "rl:" + pjp.getSignature().toShortString() + ":" + resolveClientIp(request);
+        String key = "rl:" + pjp.getSignature().toShortString() + ":" + resolvePrincipalOrIp(request);
 
         BucketConfiguration config = BucketConfiguration.builder()
                 .addLimit(Bandwidth.builder()
@@ -70,10 +73,17 @@ public class RateLimitAspect {
     }
 
     /**
-     * Best-effort client identity: first hop of X-Forwarded-For when behind a
-     * proxy, otherwise the direct remote address. Shared NATs share a limit —
-     * acceptable until auth lands.
+     * Uses authenticated user ID when available; falls back to client IP for
+     * unauthenticated auth endpoints or when security is disabled.
      */
+    private String resolvePrincipalOrIp(HttpServletRequest request) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.getPrincipal() instanceof AuthenticatedUser user) {
+            return "user:" + user.id();
+        }
+        return resolveClientIp(request);
+    }
+
     private String resolveClientIp(HttpServletRequest request) {
         String forwarded = request.getHeader("X-Forwarded-For");
         if (forwarded != null && !forwarded.isBlank()) {
