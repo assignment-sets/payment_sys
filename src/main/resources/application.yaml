@@ -61,10 +61,31 @@ transfer:
       max-pool-size: 12
       queue-capacity: 500
 
+report:
+  stream:
+    enabled: true
+    key: reports:pending
+    dlq-key: reports:dlq
+    group: report-workers
+    consumer: ${HOSTNAME:report-worker-1}
+    executor:
+      core-pool-size: 2
+      max-pool-size: 4
+      queue-capacity: 500
+
 resilience4j:
   circuitbreaker:
     instances:
       transferExecution:
+        slidingWindowType: COUNT_BASED
+        slidingWindowSize: 20
+        minimumNumberOfCalls: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10s
+        permittedNumberOfCallsInHalfOpenState: 5
+        ignoreExceptions:
+          - com.example.payment_system.exception.PaymentException
+      reportExecution:
         slidingWindowType: COUNT_BASED
         slidingWindowSize: 20
         minimumNumberOfCalls: 10
@@ -78,3 +99,34 @@ resilience4j:
       transferExecution:
         maxConcurrentCalls: 10
         maxWaitDuration: 500ms
+      reportExecution:
+        maxConcurrentCalls: 4
+        maxWaitDuration: 500ms
+
+app:
+  jwt:
+    secret: ${JWT_SECRET:dev-only-change-me-in-prod-at-least-32-bytes-long-secret-key}
+    expiration-ms: ${JWT_EXPIRATION_MS:3600000}
+  security:
+    disabled: ${SECURITY_DISABLED:false}
+    cors-allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173}
+    bootstrap-admin:
+      enabled: ${ADMIN_BOOTSTRAP_ENABLED:true}
+      name: ${ADMIN_NAME:System Admin}
+      email: ${ADMIN_EMAIL:admin@paymentsys.local}
+      password: ${ADMIN_PASSWORD:admin12345}
+
+rate-limit:
+  enabled: ${RATE_LIMIT_ENABLED:true}
+
+cache:
+  enabled: ${CACHE_ENABLED:true}
+  user:
+    ttl-seconds: 300
+  account:
+    ttl-seconds: 300
+    notify:
+      enabled: true
+  report:
+    past-ttl-seconds: 3600
+    completed-ttl-seconds: 300
