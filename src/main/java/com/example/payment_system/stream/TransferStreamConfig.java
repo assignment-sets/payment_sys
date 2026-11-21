@@ -89,7 +89,7 @@ public class TransferStreamConfig {
         return container;
     }
 
-    private void ensureConsumerGroup(StringRedisTemplate redisTemplate, String streamKey, String group) {
+    static void ensureConsumerGroup(StringRedisTemplate redisTemplate, String streamKey, String group) {
         try {
             redisTemplate.execute((RedisCallback<Void>) connection -> {
                 connection.streamCommands().xGroupCreate(
@@ -110,7 +110,7 @@ public class TransferStreamConfig {
         }
     }
 
-    private boolean isBusyGroupError(Throwable t) {
+    private static boolean isBusyGroupError(Throwable t) {
         Throwable cur = t;
         while (cur != null) {
             if (cur.getMessage() != null && cur.getMessage().contains("BUSYGROUP")) {
