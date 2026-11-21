@@ -90,3 +90,24 @@ Measured across `User`, `Account`, frozen past report `POST`, and completed `GET
 | `GET /api/reports/{reportId}` (Done) | 317.0 RPS · p50 15.86 ms · p95 25.57 ms | **717.9 RPS** · p50 **6.79 ms** · p95 **11.19 ms** | **2.26x RPS · -56.2% p95** |
 
 - **Logs:** [`k6-cache-off-20261121-172320.summary.json`](./scripts/load-test/logs/k6-cache-off-20261121-172320.summary.json) · [`k6-cache-on-20261121-172320.summary.json`](./scripts/load-test/logs/k6-cache-on-20261121-172320.summary.json)
+
+---
+
+## Test Coverage
+
+Measured via **JaCoCo** across **163 tests** (unit + integration, `./mvnw test`):
+
+| Module | Coverage |
+| :--- | ---: |
+| `exception` (Error handling & domain exceptions) | **100.0%** |
+| `ratelimit` (Bucket4j Redis rate limiting) | **100.0%** |
+| `scheduler` (Stuck transfer cleanup) | **100.0%** |
+| `dto` (Request / response DTOs) | **100.0%** |
+| `security` (JWT auth, RBAC, bootstrap) | **98.5%** |
+| `service` (Transfers, accounts, users, ledger, reports) | **94.2%** |
+| `controller` (REST API endpoints) | **89.3%** |
+| `entity` (JPA domain models) | **83.0%** |
+| `cache` (Redis caching & Postgres LISTEN/NOTIFY) | **77.2%** |
+| `stream` (Redis Streams producers & consumers) | **71.7%** |
+
+**Overall Test Coverage:** **88.2%** (`1,049 / 1,190` lines across `91` classes).
